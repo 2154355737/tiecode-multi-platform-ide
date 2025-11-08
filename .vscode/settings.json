@@ -9,5 +9,20 @@
 		"dist": true // set this to false to include "dist" folder in search results
 	},
 	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-	"typescript.tsc.autoDetect": "off"
+	"typescript.tsc.autoDetect": "off",
+	// 排除Cursor内部扩展的错误
+	"typescript.validate.enable": true,
+	"typescript.preferences.includePackageJsonAutoImports": "on",
+	// 只验证当前工作区的TypeScript文件
+	"typescript.tsserver.watchOptions": {
+		"excludeDirectories": [
+			"**/node_modules",
+			"**/.git",
+			"**/dist",
+			"**/out"
+		]
+	},
+	// 扩展调试设置
+	"debug.javascript.usePreview": true,
+	"debug.javascript.autoAttachFilter": "onlyWithFlag"
 }

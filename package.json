@@ -6,18 +6,166 @@
   "engines": {
     "vscode": "^1.105.0"
   },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "publisher": "tiecode",
   "categories": [
+    "Programming Languages",
     "Other"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "tiecode",
+    "multi-platform",
+    "ide",
+    "compiler",
+    "android",
+    "windows",
+    "linux",
+    "harmonyos"
+  ],
+  "activationEvents": [
+    "*"
+  ],
   "main": "./dist/extension.js",
+  "_testMinimal": "./dist/extension.minimal.js",
+  "_testMain": "./dist/extension.test.js",
   "contributes": {
     "commands": [
       {
-        "command": "tiecode-multi-platform-ide.helloWorld",
-        "title": "Hello World"
+        "command": "tiecode.openVisualEditor",
+        "title": "打开可视化编辑器",
+        "category": "Tiecode",
+        "icon": "$(code)"
+      },
+      {
+        "command": "tiecode.selectPlatform",
+        "title": "选择编译平台",
+        "category": "Tiecode",
+        "icon": "$(device-desktop)"
+      },
+      {
+        "command": "tiecode.compile",
+        "title": "编译项目",
+        "category": "Tiecode",
+        "icon": "$(play)"
+      },
+      {
+        "command": "tiecode.preview",
+        "title": "实时预览",
+        "category": "Tiecode",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "tiecode.showWelcome",
+        "title": "显示欢迎页面",
+        "category": "Tiecode",
+        "icon": "$(home)"
+      },
+      {
+        "command": "tiecode.resetWelcome",
+        "title": "重置欢迎页面状态",
+        "category": "Tiecode",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tiecode.createProject",
+        "title": "新建结绳项目",
+        "category": "Tiecode",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "tiecode.refreshExplorer",
+        "title": "刷新",
+        "category": "Tiecode",
+        "icon": "$(refresh)"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "tiecode.openVisualEditor",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.selectPlatform",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.compile",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.preview",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.showWelcome",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.createProject",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.refreshExplorer",
+          "when": "true"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "tiecode.createProject",
+          "when": "explorerResourceIsFolder",
+          "group": "tiecode@1"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "tiecode.createProject",
+          "when": "view == tiecodeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tiecode.refreshExplorer",
+          "when": "view == tiecodeExplorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "tiecode.selectPlatform",
+          "when": "view == tiecodeExplorer && viewItem == platform",
+          "group": "inline"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tiecode",
+          "title": "Tiecode IDE",
+          "icon": "resources/tiecode-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "tiecode": [
+        {
+          "id": "tiecodeExplorer",
+          "name": "Tiecode 功能",
+          "when": "true"
+        }
+      ]
+    },
+    "viewsWelcome": {
+      "tiecode": [
+        {
+          "view": "tiecodeExplorer",
+          "contents": "欢迎使用 Tiecode Multi-Platform IDE！\n[打开可视化编辑器](command:tiecode.openVisualEditor)\n[新建项目](command:tiecode.createProject)\n[显示欢迎页面](command:tiecode.showWelcome)"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -34,6 +182,8 @@
     "@types/vscode": "^1.105.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
     "eslint": "^9.36.0",
@@ -42,6 +192,10 @@
     "webpack": "^5.102.0",
     "webpack-cli": "^6.0.1",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3"
   }
 }

@@ -20,7 +20,10 @@ const extensionConfig = {
     libraryTarget: 'commonjs2'
   },
   externals: {
-    vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
+    vscode: 'commonjs vscode', // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
+    // Node.js内置模块应该保持为external
+    'fs': 'commonjs fs',
+    'path': 'commonjs path'
     // modules added here also need to be added in the .vscodeignore file
   },
   resolve: {
@@ -45,4 +48,47 @@ const extensionConfig = {
     level: "log", // enables logging required for problem matchers
   },
 };
-module.exports = [ extensionConfig ];
+
+// Webview前端配置
+const webviewConfig = {
+	target: 'web',
+	mode: 'none',
+	entry: './src/webview/frontend/index.tsx',
+	output: {
+		path: path.resolve(__dirname, 'dist/webview'),
+		filename: 'main.js',
+		libraryTarget: 'umd'
+	},
+	resolve: {
+		extensions: ['.ts', '.tsx', '.js', '.jsx']
+	},
+	module: {
+		rules: [
+			{
+				test: /\.tsx?$/,
+				exclude: /node_modules/,
+				use: [
+					{
+						loader: 'ts-loader',
+						options: {
+							compilerOptions: {
+								jsx: 'react'
+							}
+						}
+					}
+				]
+			},
+			{
+				test: /\.css$/,
+				use: ['style-loader', 'css-loader']
+			}
+		]
+	},
+	// React不设为external，直接打包进bundle
+	devtool: 'nosources-source-map',
+	infrastructureLogging: {
+		level: "log",
+	},
+};
+
+module.exports = [ extensionConfig, webviewConfig ];

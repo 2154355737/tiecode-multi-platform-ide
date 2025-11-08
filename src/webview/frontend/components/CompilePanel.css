@@ -1,0 +1,140 @@
+.compile-panel {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	border: 1px solid var(--vscode-panel-border);
+	background-color: var(--vscode-editor-background);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.panel-header {
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+	background-color: var(--vscode-sideBar-background);
+}
+
+.panel-header h2 {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.panel-content {
+	flex: 1;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.compile-info {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.info-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.info-item label {
+	font-size: 13px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.platform-badge {
+	padding: 4px 12px;
+	background-color: var(--vscode-badge-background);
+	color: var(--vscode-badge-foreground);
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.compile-status {
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.compile-status-idle {
+	color: var(--vscode-descriptionForeground);
+}
+
+.compile-status-compiling {
+	color: var(--vscode-textLink-foreground);
+}
+
+.compile-status-success {
+	color: var(--vscode-testing-iconPassed);
+}
+
+.compile-status-error {
+	color: var(--vscode-errorForeground);
+}
+
+.compile-config {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.config-item {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.config-item label {
+	font-size: 13px;
+	color: var(--vscode-foreground);
+}
+
+.config-item input {
+	padding: 8px 12px;
+	border: 1px solid var(--vscode-input-border);
+	background-color: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border-radius: 4px;
+	font-size: 13px;
+}
+
+.config-item input:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.config-item input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.compile-actions {
+	margin-top: auto;
+}
+
+.compile-button {
+	width: 100%;
+	padding: 10px 16px;
+	background-color: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.compile-button:hover:not(:disabled) {
+	background-color: var(--vscode-button-hoverBackground);
+}
+
+.compile-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
