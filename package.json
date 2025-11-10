@@ -74,18 +74,6 @@
         "icon": "$(eye)"
       },
       {
-        "command": "tiecode.showWelcome",
-        "title": "显示欢迎页面",
-        "category": "Tiecode",
-        "icon": "$(home)"
-      },
-      {
-        "command": "tiecode.resetWelcome",
-        "title": "重置欢迎页面状态",
-        "category": "Tiecode",
-        "icon": "$(refresh)"
-      },
-      {
         "command": "tiecode.createProject",
         "title": "新建结绳项目",
         "category": "Tiecode",
@@ -144,10 +132,6 @@
         },
         {
           "command": "tiecode.preview",
-          "when": "true"
-        },
-        {
-          "command": "tiecode.showWelcome",
           "when": "true"
         },
         {
@@ -238,14 +222,6 @@
           "id": "tiecodeExplorer",
           "name": "Tiecode 功能",
           "when": "true"
-        }
-      ]
-    },
-    "viewsWelcome": {
-      "tiecode": [
-        {
-          "view": "tiecodeExplorer",
-          "contents": "欢迎使用 Tiecode Multi-Platform IDE！\n[打开 Tiecode IDE](command:tiecode.openVisualEditor)\n[新建项目](command:tiecode.createProject)\n[显示欢迎页面](command:tiecode.showWelcome)"
         }
       ]
     }

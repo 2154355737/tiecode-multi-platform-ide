@@ -1,4 +1,4 @@
-/* 全局样式 - 使用VSCode设计规范 */
+/* 全局样式 */
 * {
 	box-sizing: border-box;
 	margin: 0;
@@ -6,10 +6,10 @@
 }
 
 body {
-	font-family: var(--vscode-font-family);
-	font-size: var(--vscode-font-size);
-	color: var(--vscode-foreground);
-	background-color: var(--vscode-editor-background);
+	font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+	font-size: var(--vscode-font-size, 13px);
+	color: var(--vscode-foreground, #cccccc);
+	background-color: var(--vscode-editor-background, #1e1e1e);
 	overflow: hidden;
 }
 
@@ -20,25 +20,24 @@ body {
 	flex-direction: column;
 }
 
-/* 滚动条样式 - 遵循VSCode设计规范 */
+/* 滚动条样式 */
 ::-webkit-scrollbar {
 	width: 12px;
 	height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-	background: var(--vscode-scrollbarSlider-background);
+	background: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4));
 	border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: var(--vscode-scrollbarSlider-hoverBackground);
+	background: var(--vscode-scrollbarSlider-hoverBackground, rgba(100, 100, 100, 0.7));
 	border-radius: 6px;
-	border: 2px solid var(--vscode-scrollbarSlider-background);
+	border: 2px solid var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4));
 	transition: background 0.2s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: var(--vscode-scrollbarSlider-activeBackground);
+	background: var(--vscode-scrollbarSlider-activeBackground, rgba(191, 191, 191, 0.4));
 }
-

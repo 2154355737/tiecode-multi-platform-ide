@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { StatusBarManager } from './ui/StatusBarManager';
 import { CommandManager } from './ui/CommandManager';
-import { WelcomeProvider } from './ui/WelcomeProvider';
 import { ActivityBarViewProvider } from './ui/ActivityBarViewProvider';
 
 /**
@@ -26,35 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showErrorMessage(`初始化失败: ${error instanceof Error ? error.message : '未知错误'}`);
 			}
 		}, 500);
-
-		// 检查是否显示欢迎页面
-		if (WelcomeProvider.shouldShowWelcome(context)) {
-			setTimeout(() => {
-				try {
-					WelcomeProvider.createOrShow(context);
-				} catch (error) {
-					console.error('显示欢迎页面失败:', error);
-				}
-			}, 1000);
-		}
-
-		// 注册欢迎页面相关命令
-		const showWelcomeCommand = vscode.commands.registerCommand(
-			'tiecode.showWelcome',
-			() => {
-				WelcomeProvider.createOrShow(context);
-			}
-		);
-		context.subscriptions.push(showWelcomeCommand);
-
-		const resetWelcomeCommand = vscode.commands.registerCommand(
-			'tiecode.resetWelcome',
-			() => {
-				WelcomeProvider.resetWelcomeState(context);
-				vscode.window.showInformationMessage('欢迎页面状态已重置，重新加载窗口后将会显示欢迎页面');
-			}
-		);
-		context.subscriptions.push(resetWelcomeCommand);
 
 		// 注册活动栏视图
 		const activityBarViewProvider = new ActivityBarViewProvider(context);
