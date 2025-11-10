@@ -35,7 +35,7 @@
     "commands": [
       {
         "command": "tiecode.openVisualEditor",
-        "title": "打开可视化编辑器",
+        "title": "打开 Tiecode IDE",
         "category": "Tiecode",
         "icon": "$(code)"
       },
@@ -76,6 +76,12 @@
         "icon": "$(new-folder)"
       },
       {
+        "command": "tiecode.editProjectConfig",
+        "title": "编辑项目配置",
+        "category": "Tiecode",
+        "icon": "$(settings)"
+      },
+      {
         "command": "tiecode.refreshExplorer",
         "title": "刷新",
         "category": "Tiecode",
@@ -106,6 +112,10 @@
         },
         {
           "command": "tiecode.createProject",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.editProjectConfig",
           "when": "true"
         },
         {
@@ -162,7 +172,7 @@
       "tiecode": [
         {
           "view": "tiecodeExplorer",
-          "contents": "欢迎使用 Tiecode Multi-Platform IDE！\n[打开可视化编辑器](command:tiecode.openVisualEditor)\n[新建项目](command:tiecode.createProject)\n[显示欢迎页面](command:tiecode.showWelcome)"
+          "contents": "欢迎使用 Tiecode Multi-Platform IDE！\n[打开 Tiecode IDE](command:tiecode.openVisualEditor)\n[新建项目](command:tiecode.createProject)\n[显示欢迎页面](command:tiecode.showWelcome)"
         }
       ]
     }
@@ -176,26 +186,38 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "dev": "webpack serve --config src/webview/frontend/webpack.dev.js",
+    "dev:frontend": "cd src/webview/frontend && webpack serve --config webpack.dev.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.105.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@types/vscode": "^1.105.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
-    "eslint": "^9.36.0",
-    "typescript": "^5.9.3",
-    "ts-loader": "^9.5.4",
-    "webpack": "^5.102.0",
-    "webpack-cli": "^6.0.1",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
+    "css-loader": "^6.8.1",
+    "eslint": "^9.36.0",
+    "html-webpack-plugin": "^5.6.0",
+    "process": "^0.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "css-loader": "^6.8.1",
-    "style-loader": "^3.3.3"
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.102.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
+    "react-icons": "^5.5.0"
   }
 }

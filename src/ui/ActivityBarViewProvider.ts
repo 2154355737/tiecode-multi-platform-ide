@@ -89,8 +89,8 @@ export class ActivityBarViewProvider implements vscode.TreeDataProvider<Activity
 		return [
 			{
 				id: 'openEditor',
-				label: '可视化编辑器',
-				description: '打开 Tiecode 可视化编辑器',
+				label: 'Tiecode IDE',
+				description: '打开 Tiecode IDE',
 				icon: 'code',
 				command: 'tiecode.openVisualEditor'
 			},
@@ -154,6 +154,13 @@ export class ActivityBarViewProvider implements vscode.TreeDataProvider<Activity
 				description: '创建新的 Tiecode 项目',
 				icon: 'new-folder',
 				command: 'tiecode.createProject'
+			},
+			{
+				id: 'editConfig',
+				label: '编辑项目配置',
+				description: '编辑项目编译配置',
+				icon: 'settings',
+				command: 'tiecode.editProjectConfig'
 			},
 			{
 				id: 'welcome',

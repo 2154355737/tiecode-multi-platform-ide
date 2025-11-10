@@ -37,6 +37,13 @@ export class StatusBarManager {
 	}
 
 	/**
+	 * 获取当前编译平台
+	 */
+	public getCurrentPlatform(): CompilePlatform {
+		return this.currentPlatform;
+	}
+
+	/**
 	 * 更新编译状态
 	 */
 	public updateStatus(status: CompileStatus): void {
@@ -62,15 +69,21 @@ export class StatusBarManager {
 	private getPlatformIcon(platform: CompilePlatform): string {
 		switch (platform) {
 			case 'Android':
-				return '📱';
+				return '$(device-mobile)';
 			case 'Windows':
-				return '🪟';
+				return '$(device-desktop)';
 			case 'Linux':
-				return '🐧';
+				return '$(terminal-linux)';
 			case 'HarmonyOS':
-				return '🌸';
+				return '$(device-desktop)';
+			case 'iOS':
+				return '$(device-mobile)';
+			case 'Apple':
+				return '$(device-mobile)';
+			case 'HTML':
+				return '$(globe)';
 			default:
-				return '⚙️';
+				return '$(settings-gear)';
 		}
 	}
 

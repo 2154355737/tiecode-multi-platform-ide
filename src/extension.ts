@@ -79,11 +79,11 @@ export function activate(context: vscode.ExtensionContext) {
 		} else {
 			// 非首次启动，显示简单的激活提示
 			vscode.window.showInformationMessage(
-				'✅ Tiecode Multi-Platform IDE 已就绪！',
-				'打开可视化编辑器',
+				'$(check) Tiecode Multi-Platform IDE 已就绪！',
+				'打开 Tiecode IDE',
 				'显示欢迎页面'
 			).then((selection) => {
-				if (selection === '打开可视化编辑器') {
+				if (selection === '打开 Tiecode IDE') {
 					vscode.commands.executeCommand('tiecode.openVisualEditor');
 				} else if (selection === '显示欢迎页面') {
 					vscode.commands.executeCommand('tiecode.showWelcome');
@@ -93,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// 输出可用命令到控制台
 		console.log('可用命令:');
-		console.log('  - tiecode.openVisualEditor: 打开可视化编辑器');
+		console.log('  - tiecode.openVisualEditor: 打开 Tiecode IDE');
 		console.log('  - tiecode.selectPlatform: 选择编译平台');
 		console.log('  - tiecode.compile: 编译项目');
 		console.log('  - tiecode.preview: 实时预览');

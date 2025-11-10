@@ -5,13 +5,30 @@ import { WebviewMessage } from '../types';
  * 用于与VSCode扩展主进程通信
  */
 export class MessageHandler {
-	private static vscode = acquireVsCodeApi();
+	private static vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
+
+	/**
+	 * 获取VSCode API实例（延迟初始化）
+	 */
+	private static getVscode() {
+		if (!this.vscode) {
+			this.vscode = acquireVsCodeApi();
+			console.log('MessageHandler: VSCode API已初始化', this.vscode);
+		}
+		return this.vscode;
+	}
 
 	/**
 	 * 发送消息到扩展主进程
 	 */
 	public static postMessage(message: WebviewMessage): void {
-		this.vscode.postMessage(message);
+		try {
+			const vscode = this.getVscode();
+			console.log('MessageHandler: 发送消息', message);
+			vscode.postMessage(message);
+		} catch (error) {
+			console.error('MessageHandler: 发送消息失败', error);
+		}
 	}
 
 	/**
@@ -27,14 +44,14 @@ export class MessageHandler {
 	 * 获取扩展状态
 	 */
 	public static getState(): any {
-		return this.vscode.getState();
+		return this.getVscode().getState();
 	}
 
 	/**
 	 * 设置扩展状态
 	 */
 	public static setState(state: any): void {
-		this.vscode.setState(state);
+		this.getVscode().setState(state);
 	}
 
 	/**
@@ -83,6 +100,15 @@ export class MessageHandler {
 		this.postMessage({
 			command: 'error',
 			payload: message
+		});
+	}
+
+	/**
+	 * 获取项目配置
+	 */
+	public static getProjectConfig(): void {
+		this.postMessage({
+			command: 'getProjectConfig'
 		});
 	}
 }

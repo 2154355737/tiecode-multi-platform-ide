@@ -3,6 +3,7 @@
 'use strict';
 
 const path = require('path');
+const webpack = require('webpack');
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -60,7 +61,10 @@ const webviewConfig = {
 		libraryTarget: 'umd'
 	},
 	resolve: {
-		extensions: ['.ts', '.tsx', '.js', '.jsx']
+		extensions: ['.ts', '.tsx', '.js', '.jsx'],
+		fallback: {
+			"process": false
+		}
 	},
 	module: {
 		rules: [
@@ -84,6 +88,17 @@ const webviewConfig = {
 			}
 		]
 	},
+	plugins: [
+		// 定义 process.env 以避免 "process is not defined" 错误
+		new webpack.DefinePlugin({
+			'process.env.NODE_ENV': JSON.stringify('production'),
+			'process.env': JSON.stringify({})
+		}),
+		// 提供 process 的全局变量
+		new webpack.ProvidePlugin({
+			process: 'process/browser'
+		})
+	],
 	// React不设为external，直接打包进bundle
 	devtool: 'nosources-source-map',
 	infrastructureLogging: {

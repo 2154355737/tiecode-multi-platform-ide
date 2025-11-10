@@ -1,0 +1,13 @@
+{
+  "name": "tiecode-frontend",
+  "version": "1.0.0",
+  "description": "Tiecode IDE Frontend Development",
+  "private": true,
+  "scripts": {
+    "dev": "webpack serve --config webpack.dev.js",
+    "build": "webpack --config webpack.config.js"
+  },
+  "devDependencies": {}
+}
+
+

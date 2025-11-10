@@ -179,31 +179,31 @@ export class WelcomeProvider {
 			<body>
 				<div class="container">
 					<div class="header">
-						<h1>🎉 欢迎使用 Tiecode Multi-Platform IDE</h1>
+						<h1>$(sparkle) 欢迎使用 Tiecode Multi-Platform IDE</h1>
 						<p>Tiecode 编程语言的完整开发套件，提供可视化开发界面和多平台编译支持</p>
 					</div>
 
 					<div class="features">
 						<div class="feature-card">
-							<h3>📱 多平台支持</h3>
+							<h3>$(device-mobile) 多平台支持</h3>
 							<p>支持 Android、Windows、Linux 和 HarmonyOS 平台的一键编译</p>
 						</div>
 						<div class="feature-card">
-							<h3>🎨 可视化编辑器</h3>
+							<h3>$(code) 可视化编辑器</h3>
 							<p>提供直观的可视化开发界面，简化开发流程</p>
 						</div>
 						<div class="feature-card">
-							<h3>⚡ 实时预览</h3>
+							<h3>$(sync) 实时预览</h3>
 							<p>实时预览您的代码效果，提高开发效率</p>
 						</div>
 						<div class="feature-card">
-							<h3>🔧 智能补全</h3>
+							<h3>$(settings-gear) 智能补全</h3>
 							<p>语法高亮、代码补全等完整的IDE功能</p>
 						</div>
 					</div>
 
 					<div class="quick-start">
-						<h3>🚀 快速开始</h3>
+						<h3>$(rocket) 快速开始</h3>
 						<ol>
 							<li>点击下方按钮打开可视化编辑器</li>
 							<li>选择您的目标编译平台（Android/Windows/Linux/HarmonyOS）</li>
