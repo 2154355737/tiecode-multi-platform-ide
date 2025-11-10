@@ -58,9 +58,9 @@ export class ConfigManager {
 	}
 
 	/**
-	 * 验证路径是否存在
+	 * 验证路径是否存在（简单验证，返回布尔值）
 	 */
-	public static async validatePath(filePath: string): Promise<boolean> {
+	public static async pathExists(filePath: string): Promise<boolean> {
 		if (!filePath) {
 			return false;
 		}
@@ -73,32 +73,64 @@ export class ConfigManager {
 	}
 
 	/**
-	 * 验证tiecc路径（应该是文件）
+	 * 验证tiecc路径（应该是目录）
 	 */
-	public static async validateTieccPath(filePath: string): Promise<boolean> {
-		if (!filePath) {
-			return false;
+	public static async validateTieccPath(dirPath: string): Promise<{ valid: boolean; error?: string }> {
+		if (!dirPath) {
+			return { valid: false, error: '路径不能为空' };
 		}
 		try {
-			const stats = await fs.promises.stat(filePath);
-			return stats.isFile();
-		} catch {
-			return false;
+			const stats = await fs.promises.stat(dirPath);
+			if (!stats.isDirectory()) {
+				return { valid: false, error: 'tiecc 路径必须是目录' };
+			}
+			return { valid: true };
+		} catch (error) {
+			return { valid: false, error: '路径不存在或无法访问' };
 		}
 	}
 
 	/**
 	 * 验证tmake路径（应该是文件）
 	 */
-	public static async validateTmakePath(filePath: string): Promise<boolean> {
+	public static async validateTmakePath(filePath: string): Promise<{ valid: boolean; error?: string }> {
 		if (!filePath) {
-			return false;
+			return { valid: false, error: '路径不能为空' };
 		}
 		try {
 			const stats = await fs.promises.stat(filePath);
-			return stats.isFile();
-		} catch {
-			return false;
+			if (!stats.isFile()) {
+				return { valid: false, error: 'tmake 路径必须是文件' };
+			}
+			// 检查文件扩展名
+			const ext = path.extname(filePath).toLowerCase();
+			if (ext !== '.exe') {
+				return { valid: false, error: 'tmake 必须是 .exe 文件' };
+			}
+			return { valid: true };
+		} catch (error) {
+			return { valid: false, error: '文件不存在或无法访问' };
+		}
+	}
+
+	/**
+	 * 验证路径（通用方法）
+	 */
+	public static async validatePath(pathToValidate: string, isDirectory: boolean): Promise<{ valid: boolean; error?: string }> {
+		if (!pathToValidate) {
+			return { valid: false, error: '路径不能为空' };
+		}
+		try {
+			const stats = await fs.promises.stat(pathToValidate);
+			if (isDirectory && !stats.isDirectory()) {
+				return { valid: false, error: '路径必须是目录' };
+			}
+			if (!isDirectory && !stats.isFile()) {
+				return { valid: false, error: '路径必须是文件' };
+			}
+			return { valid: true };
+		} catch (error) {
+			return { valid: false, error: '路径不存在或无法访问' };
 		}
 	}
 }

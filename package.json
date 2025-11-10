@@ -92,6 +92,18 @@
         "icon": "$(add)"
       },
       {
+        "command": "tiecode.tmakeVersion",
+        "title": "TMake 版本信息",
+        "category": "Tiecode",
+        "icon": "$(info)"
+      },
+      {
+        "command": "tiecode.tmakeHelp",
+        "title": "TMake 帮助",
+        "category": "Tiecode",
+        "icon": "$(question)"
+      },
+      {
         "command": "tiecode.editProjectConfig",
         "title": "编辑项目配置",
         "category": "Tiecode",
@@ -144,6 +156,14 @@
         },
         {
           "command": "tiecode.tmakeCreatePlugin",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.tmakeVersion",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.tmakeHelp",
           "when": "true"
         },
         {
@@ -260,6 +280,8 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
+    "@types/iconv-lite": "^0.0.1",
+    "iconv-lite": "^0.7.0",
     "react-icons": "^5.5.0"
   }
 }

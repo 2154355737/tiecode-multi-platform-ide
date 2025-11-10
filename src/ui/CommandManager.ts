@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { TiecodeWebviewProvider } from '../webview/TiecodeWebviewProvider';
 import { StatusBarManager } from './StatusBarManager';
-import { CompilePlatform } from '../types';
+import { CompilePlatform, CompileConfig } from '../types';
 import { ConfigManager } from '../utils/ConfigManager';
+import { TMakeService } from '../utils/TMakeService';
 
 /**
  * 命令管理器
@@ -44,11 +45,35 @@ export class CommandManager {
 			}
 		);
 
-		// 占位命令（保持命令注册，但功能简化）
+		// 编译命令
 		const compileCommand = vscode.commands.registerCommand(
 			'tiecode.compile',
-			() => {
-				vscode.window.showInformationMessage('编译功能已移除');
+			async () => {
+				try {
+					// 检查是否已配置
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						TiecodeWebviewProvider.createOrShow(context);
+						return;
+					}
+
+					// 获取当前平台
+					const platform = this.statusBarManager.getCurrentPlatform();
+					
+					// 构建编译配置
+					const config: CompileConfig = {
+						platform: platform,
+						release: false, // 默认调试模式
+						optimize: 1
+					};
+
+					// 执行编译
+					await TMakeService.compile(context, config, this.statusBarManager);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '编译失败';
+					vscode.window.showErrorMessage(`编译错误: ${errorMsg}`);
+				}
 			}
 		);
 
@@ -86,38 +111,171 @@ export class CommandManager {
 			}
 		);
 
+		// TMake 构建命令
 		const tmakeBuild = vscode.commands.registerCommand(
 			'tiecode.tmakeBuild',
-			() => {
-				vscode.window.showInformationMessage('TMake 构建功能已移除');
+			async () => {
+				try {
+					// 检查是否已配置
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						TiecodeWebviewProvider.createOrShow(context);
+						return;
+					}
+
+					// 获取当前平台
+					const platform = this.statusBarManager.getCurrentPlatform();
+					
+					// 构建编译配置
+					const config: CompileConfig = {
+						platform: platform,
+						release: false,
+						optimize: 1
+					};
+
+					// 执行构建
+					await TMakeService.build(context, config, this.statusBarManager);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '构建失败';
+					vscode.window.showErrorMessage(`构建错误: ${errorMsg}`);
+				}
 			}
 		);
 
+		// TMake 清理命令
 		const tmakeClean = vscode.commands.registerCommand(
 			'tiecode.tmakeClean',
-			() => {
-				vscode.window.showInformationMessage('TMake 清理功能已移除');
+			async () => {
+				try {
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						return;
+					}
+					await TMakeService.clean(context);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '清理失败';
+					vscode.window.showErrorMessage(`清理错误: ${errorMsg}`);
+				}
 			}
 		);
 
+		// TMake 预编译命令
 		const tmakePrecompile = vscode.commands.registerCommand(
 			'tiecode.tmakePrecompile',
-			() => {
-				vscode.window.showInformationMessage('TMake 预编译功能已移除');
+			async () => {
+				try {
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						return;
+					}
+					await TMakeService.precompile(context);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '预编译失败';
+					vscode.window.showErrorMessage(`预编译错误: ${errorMsg}`);
+				}
 			}
 		);
 
+		// TMake 创建项目命令
 		const tmakeCreateProject = vscode.commands.registerCommand(
 			'tiecode.tmakeCreateProject',
-			() => {
-				vscode.window.showInformationMessage('创建 TMake 项目功能已移除');
+			async () => {
+				try {
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						return;
+					}
+
+					const projectName = await vscode.window.showInputBox({
+						prompt: '请输入项目名称',
+						placeHolder: '例如: MyProject',
+						validateInput: (value) => {
+							if (!value || value.trim().length === 0) {
+								return '项目名称不能为空';
+							}
+							return null;
+						}
+					});
+
+					if (projectName) {
+						await TMakeService.createProject(context, projectName);
+					}
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '创建项目失败';
+					vscode.window.showErrorMessage(`创建项目错误: ${errorMsg}`);
+				}
 			}
 		);
 
+		// TMake 创建插件命令
 		const tmakeCreatePlugin = vscode.commands.registerCommand(
 			'tiecode.tmakeCreatePlugin',
-			() => {
-				vscode.window.showInformationMessage('创建 TMake 插件功能已移除');
+			async () => {
+				try {
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						return;
+					}
+
+					const pluginName = await vscode.window.showInputBox({
+						prompt: '请输入插件名称',
+						placeHolder: '例如: MyPlugin',
+						validateInput: (value) => {
+							if (!value || value.trim().length === 0) {
+								return '插件名称不能为空';
+							}
+							return null;
+						}
+					});
+
+					if (pluginName) {
+						await TMakeService.createPlugin(context, pluginName);
+					}
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '创建插件失败';
+					vscode.window.showErrorMessage(`创建插件错误: ${errorMsg}`);
+				}
+			}
+		);
+
+		// TMake 版本命令
+		const tmakeVersion = vscode.commands.registerCommand(
+			'tiecode.tmakeVersion',
+			async () => {
+				try {
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						return;
+					}
+					await TMakeService.version(context);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '获取版本失败';
+					vscode.window.showErrorMessage(`版本错误: ${errorMsg}`);
+				}
+			}
+		);
+
+		// TMake 帮助命令
+		const tmakeHelp = vscode.commands.registerCommand(
+			'tiecode.tmakeHelp',
+			async () => {
+				try {
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						return;
+					}
+					await TMakeService.help(context);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '获取帮助失败';
+					vscode.window.showErrorMessage(`帮助错误: ${errorMsg}`);
+				}
 			}
 		);
 
@@ -140,6 +298,8 @@ export class CommandManager {
 			tmakePrecompile,
 			tmakeCreateProject,
 			tmakeCreatePlugin,
+			tmakeVersion,
+			tmakeHelp,
 			editConfigCommand
 		);
 	}

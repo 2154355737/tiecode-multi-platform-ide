@@ -373,13 +373,65 @@ export class TiecodeWebviewProvider {
 				}
 				break;
 
+			case 'validatePath':
+				// 验证路径
+				{
+					try {
+						const { path: pathToValidate, purpose } = message.payload || {};
+						if (!pathToValidate) {
+							panel.webview.postMessage({
+								command: 'pathValidated',
+								payload: {
+									purpose,
+									valid: false,
+									error: '路径不能为空'
+								}
+							});
+							break;
+						}
+
+						let result;
+						if (purpose === 'windowsTieccPath') {
+							result = await ConfigManager.validateTieccPath(pathToValidate);
+						} else if (purpose === 'windowsTmakePath') {
+							result = await ConfigManager.validateTmakePath(pathToValidate);
+						} else {
+							// 其他路径默认为目录
+							result = await ConfigManager.validatePath(pathToValidate, true);
+						}
+
+						panel.webview.postMessage({
+							command: 'pathValidated',
+							payload: {
+								purpose,
+								...result
+							}
+						});
+					} catch (error) {
+						const errorMsg = error instanceof Error ? error.message : '验证路径失败';
+						panel.webview.postMessage({
+							command: 'pathValidated',
+							payload: {
+								purpose: message.payload?.purpose,
+								valid: false,
+								error: errorMsg
+							}
+						});
+					}
+				}
+				break;
+
 			case 'checkConfig':
 				// 检查配置状态
 				{
 					const isConfigured = ConfigManager.isConfigured(context);
+					const config = ConfigManager.getConfig(context);
 					panel.webview.postMessage({
 						command: 'configStatus',
-						payload: { isConfigured }
+						payload: {
+							isConfigured,
+							config: isConfigured ? config : null
+						}
 					});
 				}
 				break;
