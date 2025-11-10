@@ -35,5 +35,15 @@ export interface CompileConfig {
 	logLevel?: LogLevel;
 	/** 行号表输出路径 */
 	lineMap?: string;
+	/** 结绳编译器目录（传递给 tmake 的 --tiecc-dir） */
+	tieccDir?: string;
+	/** TMake 配置文件路径（--config） */
+	configPath?: string;
+	/** 监听模式（--watch） */
+	watch?: boolean;
+	/** 额外的 CLI 参数（直接透传到 tmake） */
+	extraArgs?: string[];
+	/** TMake 工作目录（运行 tmake 的 cwd） */
+	tmakeProjectDir?: string;
 }
 

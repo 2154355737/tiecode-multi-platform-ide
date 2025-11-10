@@ -1,7 +1,7 @@
 {
   "name": "tiecode-multi-platform-ide",
   "displayName": "Tiecode Multi-Platform IDE",
-  "description": "Tiecode 编程语言的完整开发套件，提供可视化开发界面和多平台编译支持。支持 Android、Windows、Linux 和 HarmonyOS 平台，包含语法高亮、代码补全、实时预览和一和键编译",
+  "description": "Tiecode 编程语言的开发套件，提供可视化开发界面和布局支持",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.105.0"
@@ -29,8 +29,6 @@
     "*"
   ],
   "main": "./dist/extension.js",
-  "_testMinimal": "./dist/extension.minimal.js",
-  "_testMain": "./dist/extension.test.js",
   "contributes": {
     "commands": [
       {
@@ -50,6 +48,24 @@
         "title": "编译项目",
         "category": "Tiecode",
         "icon": "$(play)"
+      },
+      {
+        "command": "tiecode.tmakeBuild",
+        "title": "TMake 构建",
+        "category": "Tiecode",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "tiecode.tmakeClean",
+        "title": "TMake 清理",
+        "category": "Tiecode",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tiecode.tmakePrecompile",
+        "title": "TMake 预编译",
+        "category": "Tiecode",
+        "icon": "$(terminal)"
       },
       {
         "command": "tiecode.preview",
@@ -74,6 +90,18 @@
         "title": "新建结绳项目",
         "category": "Tiecode",
         "icon": "$(new-folder)"
+      },
+      {
+        "command": "tiecode.tmakeCreateProject",
+        "title": "新建 TMake 项目",
+        "category": "Tiecode",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "tiecode.tmakeCreatePlugin",
+        "title": "在当前项目中创建 TMake 插件",
+        "category": "Tiecode",
+        "icon": "$(add)"
       },
       {
         "command": "tiecode.editProjectConfig",
@@ -103,6 +131,18 @@
           "when": "true"
         },
         {
+          "command": "tiecode.tmakeBuild",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.tmakeClean",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.tmakePrecompile",
+          "when": "true"
+        },
+        {
           "command": "tiecode.preview",
           "when": "true"
         },
@@ -112,6 +152,14 @@
         },
         {
           "command": "tiecode.createProject",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.tmakeCreateProject",
+          "when": "true"
+        },
+        {
+          "command": "tiecode.tmakeCreatePlugin",
           "when": "true"
         },
         {
@@ -133,6 +181,31 @@
       "view/title": [
         {
           "command": "tiecode.createProject",
+          "when": "view == tiecodeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tiecode.tmakeBuild",
+          "when": "view == tiecodeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tiecode.tmakeClean",
+          "when": "view == tiecodeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tiecode.tmakePrecompile",
+          "when": "view == tiecodeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tiecode.tmakeCreateProject",
+          "when": "view == tiecodeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tiecode.tmakeCreatePlugin",
           "when": "view == tiecodeExplorer",
           "group": "navigation"
         },
@@ -182,24 +255,17 @@
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test",
     "dev": "webpack serve --config src/webview/frontend/webpack.dev.js",
     "dev:frontend": "cd src/webview/frontend && webpack serve --config webpack.dev.js"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/vscode": "^1.105.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
-    "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2",
     "css-loader": "^6.8.1",
     "eslint": "^9.36.0",
     "html-webpack-plugin": "^5.6.0",

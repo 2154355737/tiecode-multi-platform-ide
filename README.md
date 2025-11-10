@@ -1,71 +1,46 @@
-# tiecode-multi-platform-ide README
+# Tiecode Multi-Platform IDE
 
-This is the README for your extension "tiecode-multi-platform-ide". After writing up a brief description, we recommend including the following sections.
+Tiecode 编程语言的开发套件，提供可视化开发界面和布局支持。
 
-## Features
+## 功能特性
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **可视化编辑器**：提供基于 Webview 的可视化开发界面
+- **活动栏视图**：在 VS Code 活动栏中显示 Tiecode IDE 功能视图
+- **状态栏管理**：显示编译平台和状态信息
+- **欢迎页面**：首次启动时显示欢迎和帮助信息
 
-For example if there is an image subfolder under your extension project workspace:
+## 开发
 
-\!\[feature X\]\(images/feature-x.png\)
+### 构建
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+```bash
+npm run compile
+```
 
-## Requirements
+### 开发模式
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+```bash
+npm run watch
+```
 
-## Extension Settings
+### 前端开发
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+```bash
+npm run dev:frontend
+```
 
-For example:
+## 项目结构
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+```
+src/
+├── extension.ts          # 扩展入口
+├── ui/                   # UI 布局组件
+│   ├── ActivityBarViewProvider.ts
+│   ├── CommandManager.ts
+│   ├── StatusBarManager.ts
+│   └── WelcomeProvider.ts
+├── webview/              # Webview 前端
+│   ├── TiecodeWebviewProvider.ts
+│   └── frontend/         # React 前端应用
+└── types/                # 类型定义
+```

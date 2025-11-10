@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { CompilePlatform, CompileConfig } from '../types';
-import { ProjectConfigManager } from '../utils/ProjectConfigManager';
+import { CompilePlatform } from '../types';
 
 /**
  * Webview消息类型定义
@@ -231,12 +230,6 @@ export class TiecodeWebviewProvider {
 		panel: vscode.WebviewPanel
 	): Promise<void> {
 		switch (message.command) {
-			case 'compile':
-				// 处理编译请求，通过命令触发编译
-				const compileConfig = message.payload as CompileConfig;
-				vscode.commands.executeCommand('tiecode.compile', compileConfig);
-				break;
-
 			case 'selectPlatform':
 				// 处理平台选择请求，通过命令触发平台选择
 				vscode.commands.executeCommand<CompilePlatform>('tiecode.selectPlatform').then((selectedPlatform) => {
@@ -260,16 +253,36 @@ export class TiecodeWebviewProvider {
 				break;
 
 			case 'getProjectConfig':
-				// 返回项目配置
-				const workspaceFolders = vscode.workspace.workspaceFolders;
-				if (workspaceFolders && workspaceFolders.length > 0) {
-					const workspacePath = workspaceFolders[0].uri.fsPath;
-					const projectConfig = await ProjectConfigManager.loadConfig(workspacePath);
+				// 返回空配置
+				panel.webview.postMessage({
+					command: 'projectConfig',
+					payload: null
+				});
+				break;
+			
+			case 'pickDirectory':
+				// 由前端请求目录选择器
+				{
+					const { purpose } = message.payload || {};
+					const selected = await vscode.window.showOpenDialog({
+						canSelectFiles: false,
+						canSelectFolders: true,
+						canSelectMany: false,
+						openLabel: '选择文件夹'
+					});
 					panel.webview.postMessage({
-						command: 'projectConfig',
-						payload: projectConfig
+						command: 'directoryPicked',
+						payload: {
+							purpose,
+							path: selected && selected.length > 0 ? selected[0].fsPath : null
+						}
 					});
 				}
+				break;
+			
+			case 'saveProjectConfig':
+				// 保存配置功能已移除
+				vscode.window.showInformationMessage('保存配置功能已移除');
 				break;
 
 			case 'alert':
