@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import InitialConfig from './components/InitialConfig';
 import CreateProject from './components/CreateProject';
+import ProjectConfig from './components/ProjectConfig';
 import { MessageBus } from './utils/messageBus';
 import './styles/main.css';
 
 const App: React.FC = (): React.ReactElement => {
 	const [showConfig, setShowConfig] = useState<boolean>(false);
 	const [showCreateProject, setShowCreateProject] = useState<boolean>(false);
+	const [showProjectConfig, setShowProjectConfig] = useState<boolean>(false);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -28,9 +30,17 @@ const App: React.FC = (): React.ReactElement => {
 			} else if (message.command === 'showCreateProject') {
 				// 显示创建项目界面
 				setShowCreateProject(true);
+				setShowProjectConfig(false);
 			} else if (message.command === 'createProjectClosed') {
 				// 关闭创建项目界面
 				setShowCreateProject(false);
+			} else if (message.command === 'showProjectConfig') {
+				// 显示项目配置界面
+				setShowProjectConfig(true);
+				setShowCreateProject(false);
+			} else if (message.command === 'closeProjectConfig') {
+				// 关闭项目配置界面
+				setShowProjectConfig(false);
 			}
 		};
 
@@ -65,6 +75,11 @@ const App: React.FC = (): React.ReactElement => {
 	// 如果显示创建项目界面
 	if (showCreateProject) {
 		return <CreateProject />;
+	}
+
+	// 如果显示项目配置界面
+	if (showProjectConfig) {
+		return <ProjectConfig />;
 	}
 
 	// 已配置，显示主界面

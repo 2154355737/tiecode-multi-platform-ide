@@ -86,8 +86,16 @@ export class ActivityBarViewProvider implements vscode.TreeDataProvider<Activity
 	 * 获取根节点项
 	 */
 	private getRootItems(): ActivityBarItem[] {
-		// 返回空数组，功能栏为空
-		return [];
+		return [
+			{
+				id: 'projectConfig',
+				label: '项目配置',
+				description: '编辑当前项目的配置',
+				icon: 'settings',
+				command: 'tiecode.editProjectConfig',
+				contextValue: 'projectConfig'
+			}
+		];
 	}
 }
 

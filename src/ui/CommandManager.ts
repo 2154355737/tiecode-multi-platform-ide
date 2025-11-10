@@ -281,8 +281,28 @@ export class CommandManager {
 
 		const editConfigCommand = vscode.commands.registerCommand(
 			'tiecode.editProjectConfig',
-			() => {
-				vscode.window.showInformationMessage('编辑项目配置功能已移除');
+			async () => {
+				try {
+					// 检查是否已配置
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						TiecodeWebviewProvider.createOrShow(context);
+						return;
+					}
+
+					// 打开 Webview 并显示项目配置界面
+					TiecodeWebviewProvider.createOrShow(context);
+					// 发送消息显示项目配置界面
+					setTimeout(() => {
+						TiecodeWebviewProvider.postMessage({
+							command: 'showProjectConfig'
+						});
+					}, 500);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '未知错误';
+					vscode.window.showErrorMessage(`打开项目配置界面失败: ${errorMsg}`);
+				}
 			}
 		);
 

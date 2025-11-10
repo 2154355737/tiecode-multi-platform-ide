@@ -17,23 +17,79 @@ Tiecode 编程语言的开发套件，提供可视化开发界面和布局支持
 
 ## 开发
 
-### 构建
+### 安装依赖
+
+首先需要安装项目依赖：
+
+```bash
+npm install
+```
+
+### 编译扩展
+
+#### 1. 开发编译（带源码映射）
 
 ```bash
 npm run compile
 ```
 
-### 开发模式
+这会编译 TypeScript 代码和 React 前端代码到 `dist` 目录。
+
+#### 2. 监听模式（开发时使用）
 
 ```bash
 npm run watch
 ```
 
+这会持续监听文件变化并自动重新编译。
+
+#### 3. 生产打包
+
+```bash
+npm run package
+```
+
+这会以生产模式打包扩展，生成优化后的代码。
+
 ### 前端开发
+
+如果需要单独开发前端界面：
 
 ```bash
 npm run dev:frontend
 ```
+
+这会启动开发服务器，在浏览器中打开 `http://localhost:3000` 进行调试。
+
+### 打包 VSIX 插件
+
+要生成可安装的 `.vsix` 插件文件，需要安装 `vsce` 工具：
+
+```bash
+npm install -g @vscode/vsce
+```
+
+然后运行：
+
+```bash
+vsce package
+```
+
+这会在项目根目录生成一个 `.vsix` 文件，可以直接在 VS Code 中安装。
+
+### 安装插件
+
+#### 方式一：从 VSIX 文件安装
+
+1. 在 VS Code 中按 `Ctrl+Shift+P`（Windows/Linux）或 `Cmd+Shift+P`（Mac）
+2. 输入 `Extensions: Install from VSIX...`
+3. 选择生成的 `.vsix` 文件
+
+#### 方式二：开发模式安装
+
+1. 在 VS Code 中按 `F5` 或点击"运行和调试"
+2. 这会打开一个新的 VS Code 窗口，其中加载了扩展的开发版本
+3. 在新窗口中测试扩展功能
 
 ## 项目编译
 

@@ -479,9 +479,48 @@ export class TiecodeWebviewProvider {
 				}
 				break;
 			
+			case 'loadProjectConfig':
+				// 加载项目配置
+				{
+					try {
+						const { ProjectConfigManager } = await import('../utils/ProjectConfigManager');
+						const config = await ProjectConfigManager.readConfig();
+						panel.webview.postMessage({
+							command: 'projectConfigLoaded',
+							payload: config
+						});
+					} catch (error) {
+						const errorMsg = error instanceof Error ? error.message : '加载配置失败';
+						panel.webview.postMessage({
+							command: 'projectConfigLoaded',
+							payload: null
+						});
+						console.error('加载项目配置失败:', error);
+					}
+				}
+				break;
+
 			case 'saveProjectConfig':
-				// 保存配置功能已移除
-				vscode.window.showInformationMessage('保存配置功能已移除');
+				// 保存项目配置
+				{
+					try {
+						const { ProjectConfigManager } = await import('../utils/ProjectConfigManager');
+						const config = message.payload;
+						await ProjectConfigManager.saveConfig(config);
+						panel.webview.postMessage({
+							command: 'projectConfigSaved',
+							payload: config
+						});
+						vscode.window.showInformationMessage('项目配置已保存成功！');
+					} catch (error) {
+						const errorMsg = error instanceof Error ? error.message : '保存配置失败';
+						panel.webview.postMessage({
+							command: 'projectConfigSaveError',
+							payload: errorMsg
+						});
+						vscode.window.showErrorMessage(`保存配置失败: ${errorMsg}`);
+					}
+				}
 				break;
 
 			case 'alert':

@@ -36,10 +36,14 @@ export const MessageBus = {
 		}
 	},
 
-	onMessage(handler: (message: WebviewMessage) => void) {
-		window.addEventListener('message', (event) => {
+	onMessage(handler: (message: WebviewMessage) => void): () => void {
+		const listener = (event: MessageEvent) => {
 			handler(event.data as WebviewMessage);
-		});
+		};
+		window.addEventListener('message', listener);
+		return () => {
+			window.removeEventListener('message', listener);
+		};
 	},
 
 	getState<T = any>(): T {

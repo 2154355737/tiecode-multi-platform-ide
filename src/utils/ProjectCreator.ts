@@ -82,7 +82,10 @@ export class ProjectCreator {
 			await this.copyTemplateFiles(config, context);
 
 			// 创建编译配置.tmake 文件
-			await this.createTmakeConfig(config);
+			await this.createTmakeConfig(config, context);
+
+			// 创建 Tiecode IDE 配置文件
+			await this.createTiecodeConfig(config, context);
 
 			vscode.window.showInformationMessage(
 				`项目 "${config.projectName}" 创建成功！`
@@ -281,17 +284,22 @@ export class ProjectCreator {
 	 * 创建编译配置.tmake 文件
 	 */
 	private static async createTmakeConfig(
-		config: ProjectCreateConfig
+		config: ProjectCreateConfig,
+		context: vscode.ExtensionContext
 	): Promise<void> {
 		const configPath = path.join(config.projectPath, '编译配置.tmake');
-		const configContent = this.generateTmakeConfig(config);
+		const configContent = this.generateTmakeConfig(config, context);
 		await fs.promises.writeFile(configPath, configContent, 'utf-8');
 	}
 
 	/**
 	 * 生成 tmake 配置内容
 	 */
-	private static generateTmakeConfig(config: ProjectCreateConfig): string {
+	private static generateTmakeConfig(
+		config: ProjectCreateConfig,
+		context: vscode.ExtensionContext
+	): string {
+		const compilerConfig = ConfigManager.getConfig(context);
 		const lines = [
 			'TMake版本("1.0.0")',
 			'结绳编译器版本("4.6")',
@@ -302,13 +310,49 @@ export class ProjectCreator {
 			'设置优化级别(2)',
 			'设置日志级别("warning")',
 			'设置编译器("g++")',
-			'',
-			'',
-			'编译程序(读取源文件列表("./"), 输出文件)',
-			'发布模式()'
 		];
 
+		// 注意：路径信息不再写入 TMake 配置文件，而是存储在 .tiecode.json 中
+
+		lines.push('');
+		lines.push('编译程序(读取源文件列表("./"), 输出文件)');
+		lines.push('发布模式()');
+
 		return lines.join('\n');
+	}
+
+	/**
+	 * 创建 Tiecode IDE 配置文件
+	 */
+	private static async createTiecodeConfig(
+		config: ProjectCreateConfig,
+		context: vscode.ExtensionContext
+	): Promise<void> {
+		const { ProjectConfigManager } = await import('./ProjectConfigManager');
+		const compilerConfig = ConfigManager.getConfig(context);
+		
+		const tiecodeConfig: any = {};
+
+		// 保存编译器路径和TMake路径
+		if (config.platform === 'Windows') {
+			if (compilerConfig.windowsTieccPath) {
+				// 如果路径在项目内，使用相对路径；否则使用绝对路径
+				const projectDir = config.projectPath;
+				const tieccPath = compilerConfig.windowsTieccPath;
+				const relativePath = path.relative(projectDir, tieccPath);
+				const finalTieccPath = relativePath.startsWith('..') 
+					? tieccPath 
+					: relativePath.replace(/\\/g, '/');
+				tiecodeConfig.compilerPath = finalTieccPath;
+			}
+			if (compilerConfig.windowsTmakePath) {
+				// TMake通常复制到项目根目录，使用相对路径
+				const tmakeFileName = path.basename(compilerConfig.windowsTmakePath);
+				tiecodeConfig.tmakePath = `./${tmakeFileName}`;
+			}
+		}
+
+		await ProjectConfigManager.saveTiecodeConfig(tiecodeConfig, config.projectPath);
 	}
 
 	/**
