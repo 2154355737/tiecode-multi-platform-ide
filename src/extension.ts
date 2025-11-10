@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { StatusBarManager } from './ui/StatusBarManager';
 import { CommandManager } from './ui/CommandManager';
 import { ActivityBarViewProvider } from './ui/ActivityBarViewProvider';
+import { TiecodeWebviewProvider } from './webview/TiecodeWebviewProvider';
+import { ConfigManager } from './utils/ConfigManager';
 
 /**
  * 扩展激活函数
@@ -9,6 +11,19 @@ import { ActivityBarViewProvider } from './ui/ActivityBarViewProvider';
  */
 export function activate(context: vscode.ExtensionContext) {
 	try {
+		// 检查是否已配置，如果未配置则自动打开配置界面
+		const isConfigured = ConfigManager.isConfigured(context);
+		if (!isConfigured) {
+			// 延迟打开配置界面，确保UI组件已初始化
+			setTimeout(() => {
+				try {
+					TiecodeWebviewProvider.createOrShow(context);
+				} catch (error) {
+					console.error('打开配置界面失败:', error);
+				}
+			}, 1000);
+		}
+
 		// 延迟初始化UI组件
 		setTimeout(() => {
 			try {

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { TiecodeWebviewProvider } from '../webview/TiecodeWebviewProvider';
 import { StatusBarManager } from './StatusBarManager';
 import { CompilePlatform } from '../types';
+import { ConfigManager } from '../utils/ConfigManager';
 
 /**
  * 命令管理器
@@ -60,8 +61,28 @@ export class CommandManager {
 
 		const createProjectCommand = vscode.commands.registerCommand(
 			'tiecode.createProject',
-			() => {
-				vscode.window.showInformationMessage('创建项目功能已移除');
+			async () => {
+				try {
+					// 检查是否已配置
+					const isConfigured = ConfigManager.isConfigured(context);
+					if (!isConfigured) {
+						vscode.window.showWarningMessage('请先完成初始配置');
+						TiecodeWebviewProvider.createOrShow(context);
+						return;
+					}
+
+					// 打开 Webview 并显示创建项目界面
+					TiecodeWebviewProvider.createOrShow(context);
+					// 发送消息显示创建项目界面
+					setTimeout(() => {
+						TiecodeWebviewProvider.postMessage({
+							command: 'showCreateProject'
+						});
+					}, 500);
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : '未知错误';
+					vscode.window.showErrorMessage(`打开创建项目界面失败: ${errorMsg}`);
+				}
 			}
 		);
 

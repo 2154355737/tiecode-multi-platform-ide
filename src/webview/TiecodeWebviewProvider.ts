@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { CompilePlatform } from '../types';
+import { ConfigManager } from '../utils/ConfigManager';
+import { ProjectCreator } from '../utils/ProjectCreator';
 
 /**
  * Webview消息类型定义
@@ -18,6 +20,7 @@ export interface WebviewMessage {
 export class TiecodeWebviewProvider {
 	private static currentPanel: vscode.WebviewPanel | undefined = undefined;
 	private static readonly viewType = 'tiecodeVisualEditor';
+	private static context: vscode.ExtensionContext | undefined = undefined;
 
 	/**
 	 * 创建或显示Webview面板
@@ -25,6 +28,7 @@ export class TiecodeWebviewProvider {
 	public static createOrShow(context: vscode.ExtensionContext): void {
 		try {
 			console.log('TiecodeWebviewProvider.createOrShow 被调用');
+			TiecodeWebviewProvider.context = context;
 			
 			const column = vscode.window.activeTextEditor
 				? vscode.window.activeTextEditor.viewColumn
@@ -127,13 +131,45 @@ export class TiecodeWebviewProvider {
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${webview.cspSource};">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<title>Tiecode IDE</title>
+				<style>
+					:root {
+						/* VS Code 会自动注入这些变量，这里作为备用 */
+						--vscode-foreground: var(--vscode-foreground, #cccccc);
+						--vscode-editor-background: var(--vscode-editor-background, #1e1e1e);
+						--vscode-sideBar-background: var(--vscode-sideBar-background, #252526);
+						--vscode-panel-border: var(--vscode-panel-border, #3e3e42);
+						--vscode-button-background: var(--vscode-button-background, #0e639c);
+						--vscode-button-foreground: var(--vscode-button-foreground, #ffffff);
+						--vscode-button-hoverBackground: var(--vscode-button-hoverBackground, #1177bb);
+						--vscode-focusBorder: var(--vscode-focusBorder, #007acc);
+						--vscode-descriptionForeground: var(--vscode-descriptionForeground, #989898);
+						--vscode-errorForeground: var(--vscode-errorForeground, #f48771);
+						--vscode-font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+						--vscode-font-size: var(--vscode-font-size, 13px);
+						--vscode-input-background: var(--vscode-input-background, #3c3c3c);
+						--vscode-input-foreground: var(--vscode-input-foreground, #cccccc);
+						--vscode-input-border: var(--vscode-input-border, #3e3e42);
+						--vscode-inputOption-activeBorder: var(--vscode-inputOption-activeBorder, #007acc);
+						--vscode-textLink-foreground: var(--vscode-textLink-foreground, #3794ff);
+						--vscode-textLink-activeForeground: var(--vscode-textLink-activeForeground, #3794ff);
+						--vscode-widget-shadow: var(--vscode-widget-shadow, #000000);
+					}
+					body {
+						font-family: var(--vscode-font-family);
+						font-size: var(--vscode-font-size);
+						color: var(--vscode-foreground);
+						background-color: var(--vscode-editor-background);
+						margin: 0;
+						padding: 0;
+					}
+				</style>
 			</head>
 			<body>
 				<div id="root">
-					<div style="padding: 20px; font-family: sans-serif;">
-						<h2>正在加载 Tiecode IDE...</h2>
-						<p>如果此页面长时间显示，请检查控制台是否有错误信息。</p>
-						<div id="error-message" style="display: none; color: red; margin-top: 20px;">
+					<div style="padding: 20px; font-family: var(--vscode-font-family); color: var(--vscode-foreground);">
+						<h2 style="color: var(--vscode-foreground);">正在加载 Tiecode IDE...</h2>
+						<p style="color: var(--vscode-descriptionForeground);">如果此页面长时间显示，请检查控制台是否有错误信息。</p>
+						<div id="error-message" style="display: none; color: var(--vscode-errorForeground); margin-top: 20px;">
 							<h3>加载错误</h3>
 							<p id="error-text"></p>
 						</div>
@@ -229,6 +265,11 @@ export class TiecodeWebviewProvider {
 		message: WebviewMessage,
 		panel: vscode.WebviewPanel
 	): Promise<void> {
+		const context = TiecodeWebviewProvider.context;
+		if (!context) {
+			vscode.window.showErrorMessage('扩展上下文未初始化');
+			return;
+		}
 		switch (message.command) {
 			case 'selectPlatform':
 				// 处理平台选择请求，通过命令触发平台选择
@@ -276,6 +317,112 @@ export class TiecodeWebviewProvider {
 							purpose,
 							path: selected && selected.length > 0 ? selected[0].fsPath : null
 						}
+					});
+				}
+				break;
+
+			case 'pickFile':
+				// 由前端请求文件选择器
+				{
+					const { purpose, filters } = message.payload || {};
+					const selected = await vscode.window.showOpenDialog({
+						canSelectFiles: true,
+						canSelectFolders: false,
+						canSelectMany: false,
+						openLabel: '选择文件',
+						filters: filters || { '可执行文件': ['exe'], '所有文件': ['*'] }
+					});
+					panel.webview.postMessage({
+						command: 'filePicked',
+						payload: {
+							purpose,
+							path: selected && selected.length > 0 ? selected[0].fsPath : null
+						}
+					});
+				}
+				break;
+
+			case 'saveConfig':
+				// 保存编译器配置
+				{
+					try {
+						const config = message.payload;
+						await ConfigManager.saveConfig(context, config);
+						panel.webview.postMessage({
+							command: 'configSaved',
+							payload: config
+						});
+					} catch (error) {
+						const errorMsg = error instanceof Error ? error.message : '保存配置失败';
+						panel.webview.postMessage({
+							command: 'configSaveError',
+							payload: errorMsg
+						});
+					}
+				}
+				break;
+
+			case 'getConfig':
+				// 获取编译器配置
+				{
+					const config = ConfigManager.getConfig(context);
+					panel.webview.postMessage({
+						command: 'configLoaded',
+						payload: config
+					});
+				}
+				break;
+
+			case 'checkConfig':
+				// 检查配置状态
+				{
+					const isConfigured = ConfigManager.isConfigured(context);
+					panel.webview.postMessage({
+						command: 'configStatus',
+						payload: { isConfigured }
+					});
+				}
+				break;
+
+			case 'configCompleted':
+				// 配置完成，显示成功消息
+				vscode.window.showInformationMessage('配置已保存成功！');
+				break;
+
+
+			case 'createProject':
+				// 创建项目
+				{
+					if (!context) {
+						panel.webview.postMessage({
+							command: 'projectCreateError',
+							payload: '上下文未初始化'
+						});
+						break;
+					}
+					try {
+						const projectConfig = message.payload;
+						await ProjectCreator.createProject(context, projectConfig);
+						panel.webview.postMessage({
+							command: 'projectCreated',
+							payload: projectConfig
+						});
+					} catch (error) {
+						const errorMsg = error instanceof Error ? error.message : '创建项目失败';
+						panel.webview.postMessage({
+							command: 'projectCreateError',
+							payload: errorMsg
+						});
+					}
+				}
+				break;
+
+			case 'closeCreateProject':
+				// 关闭创建项目界面
+				{
+					// 可以在这里处理关闭逻辑，比如刷新视图
+					panel.webview.postMessage({
+						command: 'createProjectClosed'
 					});
 				}
 				break;
