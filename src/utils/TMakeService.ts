@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { spawn, ChildProcess } from 'child_process';
 import * as iconv from 'iconv-lite';
-import { ConfigManager } from './ConfigManager';
+import { ProjectConfigManager } from './ProjectConfigManager';
 import { CompileConfig } from '../types';
 import { StatusBarManager } from '../ui/StatusBarManager';
 
@@ -40,39 +40,71 @@ export class TMakeService {
 
 	/**
 	 * 获取 TMake 可执行文件路径
+	 * 从项目配置中读取
 	 */
-	private static getTmakePath(context: vscode.ExtensionContext): string | null {
-		const config = ConfigManager.getConfig(context);
-		if (config.windowsTmakePath && fs.existsSync(config.windowsTmakePath)) {
-			return config.windowsTmakePath;
+	private static async getTmakePath(projectDir?: string): Promise<string | null> {
+		const resolvedProjectDir = projectDir ?? this.getProjectDir();
+		if (!resolvedProjectDir) {
+			return null;
 		}
+
+		// 从项目配置读取
+		const projectConfig = await ProjectConfigManager.readConfig(resolvedProjectDir);
+		if (projectConfig && projectConfig.compiler.tmakePath) {
+			let tmakePath = projectConfig.compiler.tmakePath;
+			// 如果是相对路径，转换为绝对路径
+			if (!path.isAbsolute(tmakePath)) {
+				tmakePath = path.resolve(resolvedProjectDir, tmakePath);
+			}
+			if (fs.existsSync(tmakePath)) {
+				return tmakePath;
+			}
+		}
+
+		// 如果项目配置中没有，尝试在项目根目录查找 tmake.exe
+		const defaultTmakePath = path.join(resolvedProjectDir, 'tmake.exe');
+		if (fs.existsSync(defaultTmakePath)) {
+			return defaultTmakePath;
+		}
+
 		return null;
 	}
 
 	/**
 	 * 获取 tiecc 目录路径
-	 * 优先级：项目内的 .Tiecode 文件夹 > 配置中的路径 > 环境变量
+	 * 优先级：项目内的 .Tiecode 文件夹 > 项目配置中的路径 > 环境变量
 	 * 注意：返回路径（项目内的返回相对路径，其他的返回绝对路径）
 	 */
-	private static getTieccDir(context: vscode.ExtensionContext, projectDir?: string): string | null {
-		// 1. 优先检查项目内的 .Tiecode 文件夹（最优先，因为这是项目特定的）
-		if (projectDir) {
-			const tiecodeDir = path.join(projectDir, '.Tiecode');
-			if (fs.existsSync(tiecodeDir)) {
-				// 返回相对路径，TMake 会在项目目录下查找
-				return '.Tiecode';
-			}
+	private static async getTieccDir(projectDir?: string): Promise<string | null> {
+		const resolvedProjectDir = projectDir ?? this.getProjectDir();
+		if (!resolvedProjectDir) {
+			return null;
 		}
 
-		// 2. 使用配置中的路径
-		const config = ConfigManager.getConfig(context);
-		if (config.windowsTieccPath && fs.existsSync(config.windowsTieccPath)) {
-			// 确保返回绝对路径
-			if (path.isAbsolute(config.windowsTieccPath)) {
-				return config.windowsTieccPath;
-			} else {
-				// 如果是相对路径，转换为绝对路径
-				return path.resolve(config.windowsTieccPath);
+		// 1. 优先检查项目内的 .Tiecode 文件夹（最优先，因为这是项目特定的）
+		const tiecodeDir = path.join(resolvedProjectDir, '.Tiecode');
+		if (fs.existsSync(tiecodeDir)) {
+			// 返回相对路径，TMake 会在项目目录下查找
+			return '.Tiecode';
+		}
+
+		// 2. 从项目配置读取
+		const projectConfig = await ProjectConfigManager.readConfig(resolvedProjectDir);
+		if (projectConfig && projectConfig.compiler.compilerPath) {
+			let compilerPath = projectConfig.compiler.compilerPath;
+			// 如果是相对路径，转换为绝对路径
+			if (!path.isAbsolute(compilerPath)) {
+				compilerPath = path.resolve(resolvedProjectDir, compilerPath);
+			}
+			if (fs.existsSync(compilerPath)) {
+				// 检查是否是项目内的路径
+				const relativePath = path.relative(resolvedProjectDir, compilerPath);
+				if (!relativePath.startsWith('..')) {
+					// 项目内的路径，返回相对路径
+					return relativePath.replace(/\\/g, '/');
+				}
+				// 项目外的路径，返回绝对路径
+				return compilerPath;
 			}
 		}
 
@@ -157,7 +189,7 @@ export class TMakeService {
 	 * 执行 TMake 命令
 	 */
 	private static async executeCommand(
-		context: vscode.ExtensionContext,
+		_context: vscode.ExtensionContext,
 		command: TMakeCommand,
 		args: string[] = [],
 		options: {
@@ -166,14 +198,14 @@ export class TMakeService {
 			onStderr?: (data: string) => void;
 		} = {}
 	): Promise<{ success: boolean; output: string; error?: string }> {
-		const tmakePath = this.getTmakePath(context);
-		if (!tmakePath) {
-			throw new Error('未找到 TMake 可执行文件，请先完成初始配置');
-		}
-
 		const projectDir = options.cwd || this.getProjectDir();
 		if (!projectDir) {
 			throw new Error('未找到项目目录，请先打开工作区');
+		}
+
+		const tmakePath = await this.getTmakePath(projectDir);
+		if (!tmakePath) {
+			throw new Error('未找到 TMake 可执行文件，请在项目配置中设置 tmakePath');
 		}
 
 		const outputChannel = this.getOutputChannel();
@@ -423,7 +455,7 @@ export class TMakeService {
 			}
 
 			// 获取 tiecc 目录
-			const tieccDir = config.tieccDir || this.getTieccDir(context, projectDir);
+			const tieccDir = config.tieccDir || await this.getTieccDir(projectDir);
 			if (tieccDir) {
 				config.tieccDir = tieccDir;
 			}
@@ -473,7 +505,7 @@ export class TMakeService {
 			}
 
 			// 获取 tiecc 目录
-			const tieccDir = config.tieccDir || this.getTieccDir(context, projectDir);
+			const tieccDir = config.tieccDir || await this.getTieccDir(projectDir);
 			if (tieccDir) {
 				config.tieccDir = tieccDir;
 			}

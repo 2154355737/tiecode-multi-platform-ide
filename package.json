@@ -2,7 +2,7 @@
   "name": "tiecode-multi-platform-ide",
   "displayName": "Tiecode Multi-Platform IDE",
   "description": "Tiecode 编程语言的开发套件，提供可视化开发界面和布局支持",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.105.0"
   },
@@ -16,17 +16,11 @@
     "Other"
   ],
   "keywords": [
-    "tiecode",
-    "multi-platform",
-    "ide",
-    "compiler",
     "android",
     "windows",
-    "linux",
-    "harmonyos"
+    "linux"
   ],
   "activationEvents": [
-    "*"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -244,7 +238,26 @@
           "when": "true"
         }
       ]
-    }
+    },
+    "languages": [
+      {
+        "id": "tiecode",
+        "aliases": [
+          "Tiecode",
+          "tiecode"
+        ],
+        "extensions": [
+          ".t"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tiecode",
+        "scopeName": "source.tiecode",
+        "path": "./tiecode.tmLanguage.json"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import InitialConfig from './components/InitialConfig';
 import CreateProject from './components/CreateProject';
@@ -6,11 +6,12 @@ import ProjectConfig from './components/ProjectConfig';
 import { MessageBus } from './utils/messageBus';
 import './styles/main.css';
 
+type ViewState = 'loading' | 'initialConfig' | 'createProject' | 'projectConfig' | 'home';
+
 const App: React.FC = (): React.ReactElement => {
-	const [showConfig, setShowConfig] = useState<boolean>(false);
-	const [showCreateProject, setShowCreateProject] = useState<boolean>(false);
-	const [showProjectConfig, setShowProjectConfig] = useState<boolean>(false);
-	const [loading, setLoading] = useState(true);
+	const [view, setView] = useState<ViewState>('loading');
+	const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
+	const intentRef = useRef<'none' | 'createProject' | 'projectConfig'>('none');
 
 	useEffect(() => {
 		// 检查配置状态
@@ -19,35 +20,46 @@ const App: React.FC = (): React.ReactElement => {
 		});
 
 		// 监听来自后端的消息
-		const handleMessage = (message: any) => {
+		const unsubscribe = MessageBus.onMessage((message: any) => {
 			if (message.command === 'configStatus') {
-				const { isConfigured } = message.payload;
-				setShowConfig(!isConfigured);
-				setLoading(false);
+				const { isConfigured: configured } = message.payload;
+				setIsConfigured(configured);
+				// 若已有明确意图，则保持该意图优先级最高
+				if (intentRef.current === 'createProject') {
+					setView('createProject');
+				} else if (intentRef.current === 'projectConfig') {
+					setView('projectConfig');
+				} else {
+					setView((current) => {
+						if (current === 'createProject' || current === 'projectConfig') {
+							return current;
+						}
+						return configured ? 'home' : 'initialConfig';
+					});
+				}
 			} else if (message.command === 'configCompleted') {
-				// 配置完成后，刷新页面或显示主界面
-				setShowConfig(false);
+				setIsConfigured(true);
+				setView('home');
 			} else if (message.command === 'showCreateProject') {
-				// 显示创建项目界面
-				setShowCreateProject(true);
-				setShowProjectConfig(false);
+				intentRef.current = 'createProject';
+				setView('createProject');
 			} else if (message.command === 'createProjectClosed') {
-				// 关闭创建项目界面
-				setShowCreateProject(false);
+				// 关闭创建页后返回首页，即使未配置也不强制进入首次配置
+				intentRef.current = 'none';
+				setView('home');
 			} else if (message.command === 'showProjectConfig') {
-				// 显示项目配置界面
-				setShowProjectConfig(true);
-				setShowCreateProject(false);
+				intentRef.current = 'projectConfig';
+				setView('projectConfig');
 			} else if (message.command === 'closeProjectConfig') {
-				// 关闭项目配置界面
-				setShowProjectConfig(false);
+				intentRef.current = 'none';
+				setView(isConfigured ? 'home' : 'initialConfig');
 			}
-		};
+		});
 
-		MessageBus.onMessage(handleMessage);
-	}, []);
+		return unsubscribe;
+	}, [isConfigured]);
 
-	if (loading) {
+	if (view === 'loading') {
 		return (
 			<Box
 				sx={{
@@ -68,17 +80,17 @@ const App: React.FC = (): React.ReactElement => {
 	}
 
 	// 如果未配置，显示配置界面
-	if (showConfig) {
+	if (view === 'initialConfig') {
 		return <InitialConfig />;
 	}
 
 	// 如果显示创建项目界面
-	if (showCreateProject) {
+	if (view === 'createProject') {
 		return <CreateProject />;
 	}
 
 	// 如果显示项目配置界面
-	if (showProjectConfig) {
+	if (view === 'projectConfig') {
 		return <ProjectConfig />;
 	}
 

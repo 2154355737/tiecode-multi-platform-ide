@@ -1,0 +1,67 @@
+{
+
+  "name": "Tiecode",
+  "scopeName": "source.tiecode",
+  "fileTypes": ["t"],
+  "patterns": [
+    {
+      "name": "comment.line.double-slash.tiecode",
+      "match": "//.*$",
+      "captures": {
+        "0": { "name": "punctuation.definition.comment.tiecode" }
+      }
+    },
+    {
+      "name": "string.quoted.double.tiecode",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.tiecode",
+          "match": "\\."
+        }
+      ]
+    },
+    {
+      "name": "keyword.control.tiecode",
+      "match": "\\b(类|结束类|方法|结束方法|属性读|属性写|事件|结束事件|定义事件|循环|结束循环|判断|否则|结束判断|返回|等待)\\b"
+    },
+    {
+      "name": "keyword.operator.tiecode",
+      "match": "(==|!=|<=|>=|<|>|\\+|-|\\*|/|%|=)"
+    },
+    {
+      "name": "constant.language.tiecode",
+      "match": "\\b(真|假|空|本对象)\\b"
+    },
+    {
+      "name": "entity.name.type.class.tiecode",
+      "match": "(?<=类\\s)(\\w+)"
+    },
+    {
+      "name": "entity.name.function.tiecode",
+      "match": "(?<=方法\\s)(\\w+)"
+    },
+    {
+      "name": "storage.modifier.annotation.tiecode",
+      "match": "@\\w+"
+    },
+    {
+      "name": "variable.other.tiecode",
+      "match": "\\b(\\w+)(?=\\s*:)"
+    },
+    {
+      "name": "entity.other.attribute-name.tiecode",
+      "match": "\\.(\\w+|[\\u4e00-\\u9fa5]+)"
+    },
+    {
+      "name": "support.type.tiecode",
+      "match": "\\b([\\u4e00-\\u9fa5]+|\\w+)(<[^>]+>)?\\b|(?<=:\\s*)([\\w]+|[\\u4e00-\\u9fa5]+)(<[^>]+>)?"
+    },
+    {
+      "name": "constant.numeric.tiecode",
+      "match": "\\b\\d+(\\.\\d+)?\\b"
+    }
+  ],
+  "repository": {}
+}

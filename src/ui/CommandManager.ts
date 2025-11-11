@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TiecodeWebviewProvider } from '../webview/TiecodeWebviewProvider';
 import { StatusBarManager } from './StatusBarManager';
 import { CompilePlatform, CompileConfig } from '../types';
-import { ConfigManager } from '../utils/ConfigManager';
+import { ProjectConfigManager } from '../utils/ProjectConfigManager';
 import { TMakeService } from '../utils/TMakeService';
 
 /**
@@ -18,6 +18,18 @@ export class CommandManager {
 	) {
 		this.statusBarManager = statusBarManager;
 		this.registerCommands(context);
+	}
+
+	/**
+	 * 检查项目是否已配置
+	 */
+	private async checkProjectConfig(): Promise<boolean> {
+		const projectDir = ProjectConfigManager.getProjectDir();
+		if (!projectDir) {
+			return false;
+		}
+		const config = await ProjectConfigManager.readConfig(projectDir);
+		return config !== null && !!(config.compiler.compilerPath || config.compiler.tmakePath);
 	}
 
 	/**
@@ -50,10 +62,10 @@ export class CommandManager {
 			'tiecode.compile',
 			async () => {
 				try {
-					// 检查是否已配置
-					const isConfigured = ConfigManager.isConfigured(context);
+					// 检查项目是否已配置
+					const isConfigured = await this.checkProjectConfig();
 					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
+						vscode.window.showWarningMessage('请先在项目配置中设置编译器和 TMake 路径');
 						TiecodeWebviewProvider.createOrShow(context);
 						return;
 					}
@@ -88,14 +100,6 @@ export class CommandManager {
 			'tiecode.createProject',
 			async () => {
 				try {
-					// 检查是否已配置
-					const isConfigured = ConfigManager.isConfigured(context);
-					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
-						TiecodeWebviewProvider.createOrShow(context);
-						return;
-					}
-
 					// 打开 Webview 并显示创建项目界面
 					TiecodeWebviewProvider.createOrShow(context);
 					// 发送消息显示创建项目界面
@@ -116,10 +120,10 @@ export class CommandManager {
 			'tiecode.tmakeBuild',
 			async () => {
 				try {
-					// 检查是否已配置
-					const isConfigured = ConfigManager.isConfigured(context);
+					// 检查项目是否已配置
+					const isConfigured = await this.checkProjectConfig();
 					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
+						vscode.window.showWarningMessage('请先在项目配置中设置编译器和 TMake 路径');
 						TiecodeWebviewProvider.createOrShow(context);
 						return;
 					}
@@ -148,9 +152,10 @@ export class CommandManager {
 			'tiecode.tmakeClean',
 			async () => {
 				try {
-					const isConfigured = ConfigManager.isConfigured(context);
+					// 检查项目是否已配置
+					const isConfigured = await this.checkProjectConfig();
 					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
+						vscode.window.showWarningMessage('请先在项目配置中设置编译器和 TMake 路径');
 						return;
 					}
 					await TMakeService.clean(context);
@@ -166,9 +171,10 @@ export class CommandManager {
 			'tiecode.tmakePrecompile',
 			async () => {
 				try {
-					const isConfigured = ConfigManager.isConfigured(context);
+					// 检查项目是否已配置
+					const isConfigured = await this.checkProjectConfig();
 					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
+						vscode.window.showWarningMessage('请先在项目配置中设置编译器和 TMake 路径');
 						return;
 					}
 					await TMakeService.precompile(context);
@@ -184,12 +190,6 @@ export class CommandManager {
 			'tiecode.tmakeCreateProject',
 			async () => {
 				try {
-					const isConfigured = ConfigManager.isConfigured(context);
-					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
-						return;
-					}
-
 					const projectName = await vscode.window.showInputBox({
 						prompt: '请输入项目名称',
 						placeHolder: '例如: MyProject',
@@ -216,9 +216,10 @@ export class CommandManager {
 			'tiecode.tmakeCreatePlugin',
 			async () => {
 				try {
-					const isConfigured = ConfigManager.isConfigured(context);
+					// 检查项目是否已配置
+					const isConfigured = await this.checkProjectConfig();
 					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
+						vscode.window.showWarningMessage('请先在项目配置中设置编译器和 TMake 路径');
 						return;
 					}
 
@@ -248,9 +249,10 @@ export class CommandManager {
 			'tiecode.tmakeVersion',
 			async () => {
 				try {
-					const isConfigured = ConfigManager.isConfigured(context);
+					// 检查项目是否已配置
+					const isConfigured = await this.checkProjectConfig();
 					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
+						vscode.window.showWarningMessage('请先在项目配置中设置编译器和 TMake 路径');
 						return;
 					}
 					await TMakeService.version(context);
@@ -266,9 +268,10 @@ export class CommandManager {
 			'tiecode.tmakeHelp',
 			async () => {
 				try {
-					const isConfigured = ConfigManager.isConfigured(context);
+					// 检查项目是否已配置
+					const isConfigured = await this.checkProjectConfig();
 					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
+						vscode.window.showWarningMessage('请先在项目配置中设置编译器和 TMake 路径');
 						return;
 					}
 					await TMakeService.help(context);
@@ -283,14 +286,6 @@ export class CommandManager {
 			'tiecode.editProjectConfig',
 			async () => {
 				try {
-					// 检查是否已配置
-					const isConfigured = ConfigManager.isConfigured(context);
-					if (!isConfigured) {
-						vscode.window.showWarningMessage('请先完成初始配置');
-						TiecodeWebviewProvider.createOrShow(context);
-						return;
-					}
-
 					// 打开 Webview 并显示项目配置界面
 					TiecodeWebviewProvider.createOrShow(context);
 					// 发送消息显示项目配置界面

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { ConfigManager } from './ConfigManager';
+import { ProjectConfigManager } from './ProjectConfigManager';
 
 /**
  * 项目平台类型
@@ -37,11 +37,10 @@ export class ProjectCreator {
 	public static async createProject(
 		context: vscode.ExtensionContext,
 		config: ProjectCreateConfig
-	): Promise<void> {
+	): Promise<string> {
 		try {
 			// 验证配置
-			const compilerConfig = ConfigManager.getConfig(context);
-			if (!this.validateConfig(config, compilerConfig)) {
+			if (!this.validateConfig(config)) {
 				throw new Error('配置验证失败');
 			}
 
@@ -59,37 +58,20 @@ export class ProjectCreator {
 			// 创建项目目录
 			await this.createProjectDirectory(finalProjectPath);
 
-			// 创建 .Tiecode 文件夹
-			const tiecodeDir = path.join(finalProjectPath, '.Tiecode');
-			await this.createDirectory(tiecodeDir);
-
-			// 复制 tiecc 核心编译器
-			if (config.platform === 'Windows' && compilerConfig.windowsTieccPath) {
-				await this.copyDirectory(
-					compilerConfig.windowsTieccPath,
-					tiecodeDir
-				);
-			}
-
-			// 复制 tmake 工具链
-			if (config.platform === 'Windows' && compilerConfig.windowsTmakePath) {
-				const tmakeFileName = path.basename(compilerConfig.windowsTmakePath);
-				const tmakeDestPath = path.join(finalProjectPath, tmakeFileName);
-				await this.copyFile(compilerConfig.windowsTmakePath, tmakeDestPath);
-			}
-
 			// 复制模板文件
 			await this.copyTemplateFiles(config, context);
 
 			// 创建编译配置.tmake 文件
 			await this.createTmakeConfig(config, context);
 
-			// 创建 Tiecode IDE 配置文件
+			// 创建 Tiecode IDE 配置文件（不包含路径，需要用户后续配置）
 			await this.createTiecodeConfig(config, context);
 
 			vscode.window.showInformationMessage(
-				`项目 "${config.projectName}" 创建成功！`
+				`项目 "${config.projectName}" 创建成功！请在项目配置中设置编译器和 TMake 路径。`
 			);
+
+			return finalProjectPath;
 		} catch (error) {
 			const errorMsg = error instanceof Error ? error.message : '创建项目失败';
 			vscode.window.showErrorMessage(`创建项目失败: ${errorMsg}`);
@@ -101,17 +83,10 @@ export class ProjectCreator {
 	 * 验证配置
 	 */
 	private static validateConfig(
-		config: ProjectCreateConfig,
-		compilerConfig: any
+		config: ProjectCreateConfig
 	): boolean {
 		if (!config.projectName || !config.projectPath) {
 			return false;
-		}
-
-		if (config.platform === 'Windows') {
-			if (!compilerConfig.windowsTieccPath || !compilerConfig.windowsTmakePath) {
-				return false;
-			}
 		}
 
 		return true;
@@ -297,9 +272,8 @@ export class ProjectCreator {
 	 */
 	private static generateTmakeConfig(
 		config: ProjectCreateConfig,
-		context: vscode.ExtensionContext
+		_context: vscode.ExtensionContext
 	): string {
-		const compilerConfig = ConfigManager.getConfig(context);
 		const lines = [
 			'TMake版本("1.0.0")',
 			'结绳编译器版本("4.6")',
@@ -323,34 +297,14 @@ export class ProjectCreator {
 
 	/**
 	 * 创建 Tiecode IDE 配置文件
+	 * 创建时不包含路径，需要用户后续在项目配置中设置
 	 */
 	private static async createTiecodeConfig(
 		config: ProjectCreateConfig,
-		context: vscode.ExtensionContext
+		_context: vscode.ExtensionContext
 	): Promise<void> {
-		const { ProjectConfigManager } = await import('./ProjectConfigManager');
-		const compilerConfig = ConfigManager.getConfig(context);
-		
+		// 创建空的配置文件，路径需要用户后续配置
 		const tiecodeConfig: any = {};
-
-		// 保存编译器路径和TMake路径
-		if (config.platform === 'Windows') {
-			if (compilerConfig.windowsTieccPath) {
-				// 如果路径在项目内，使用相对路径；否则使用绝对路径
-				const projectDir = config.projectPath;
-				const tieccPath = compilerConfig.windowsTieccPath;
-				const relativePath = path.relative(projectDir, tieccPath);
-				const finalTieccPath = relativePath.startsWith('..') 
-					? tieccPath 
-					: relativePath.replace(/\\/g, '/');
-				tiecodeConfig.compilerPath = finalTieccPath;
-			}
-			if (compilerConfig.windowsTmakePath) {
-				// TMake通常复制到项目根目录，使用相对路径
-				const tmakeFileName = path.basename(compilerConfig.windowsTmakePath);
-				tiecodeConfig.tmakePath = `./${tmakeFileName}`;
-			}
-		}
 
 		await ProjectConfigManager.saveTiecodeConfig(tiecodeConfig, config.projectPath);
 	}

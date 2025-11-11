@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { CompilePlatform } from '../types';
-import { ConfigManager } from '../utils/ConfigManager';
 import { ProjectCreator } from '../utils/ProjectCreator';
+import { ProjectConfigManager } from '../utils/ProjectConfigManager';
 
 /**
  * Webview消息类型定义
@@ -21,6 +21,7 @@ export class TiecodeWebviewProvider {
 	private static currentPanel: vscode.WebviewPanel | undefined = undefined;
 	private static readonly viewType = 'tiecodeVisualEditor';
 	private static context: vscode.ExtensionContext | undefined = undefined;
+	private static currentProjectDir: string | undefined = undefined;
 
 	/**
 	 * 创建或显示Webview面板
@@ -342,39 +343,8 @@ export class TiecodeWebviewProvider {
 				}
 				break;
 
-			case 'saveConfig':
-				// 保存编译器配置
-				{
-					try {
-						const config = message.payload;
-						await ConfigManager.saveConfig(context, config);
-						panel.webview.postMessage({
-							command: 'configSaved',
-							payload: config
-						});
-					} catch (error) {
-						const errorMsg = error instanceof Error ? error.message : '保存配置失败';
-						panel.webview.postMessage({
-							command: 'configSaveError',
-							payload: errorMsg
-						});
-					}
-				}
-				break;
-
-			case 'getConfig':
-				// 获取编译器配置
-				{
-					const config = ConfigManager.getConfig(context);
-					panel.webview.postMessage({
-						command: 'configLoaded',
-						payload: config
-					});
-				}
-				break;
-
 			case 'validatePath':
-				// 验证路径
+				// 验证路径（用于项目配置）
 				{
 					try {
 						const { path: pathToValidate, purpose } = message.payload || {};
@@ -391,13 +361,13 @@ export class TiecodeWebviewProvider {
 						}
 
 						let result;
-						if (purpose === 'windowsTieccPath') {
-							result = await ConfigManager.validateTieccPath(pathToValidate);
-						} else if (purpose === 'windowsTmakePath') {
-							result = await ConfigManager.validateTmakePath(pathToValidate);
+						if (purpose === 'compilerPath' || purpose === 'windowsTieccPath') {
+							result = await ProjectConfigManager.validateCompilerPath(pathToValidate);
+						} else if (purpose === 'tmakePath' || purpose === 'windowsTmakePath') {
+							result = await ProjectConfigManager.validateTmakePath(pathToValidate);
 						} else {
 							// 其他路径默认为目录
-							result = await ConfigManager.validatePath(pathToValidate, true);
+							result = await ProjectConfigManager.validatePath(pathToValidate, true);
 						}
 
 						panel.webview.postMessage({
@@ -421,24 +391,60 @@ export class TiecodeWebviewProvider {
 				}
 				break;
 
-			case 'checkConfig':
-				// 检查配置状态
+			case 'saveConfig':
+				// 兼容旧版本：全局编译器配置已废弃
 				{
-					const isConfigured = ConfigManager.isConfigured(context);
-					const config = ConfigManager.getConfig(context);
 					panel.webview.postMessage({
-						command: 'configStatus',
-						payload: {
-							isConfigured,
-							config: isConfigured ? config : null
-						}
+						command: 'configSaveError',
+						payload: '全局编译器配置已废弃，请在项目配置中设置编译器与 TMake 路径。'
 					});
+					vscode.window.showWarningMessage('全局编译器配置已废弃，请改用项目配置。');
 				}
 				break;
 
-			case 'configCompleted':
-				// 配置完成，显示成功消息
-				vscode.window.showInformationMessage('配置已保存成功！');
+			case 'checkConfig':
+				// 检查当前项目配置状态
+				{
+					try {
+						const projectDir = ProjectConfigManager.getProjectDir();
+						if (!projectDir) {
+							panel.webview.postMessage({
+								command: 'configStatus',
+								payload: {
+									isConfigured: false,
+									config: null
+								}
+							});
+							break;
+						}
+
+						const projectConfig = await ProjectConfigManager.readConfig(projectDir);
+						const isConfigured =
+							!!projectConfig &&
+							!!(
+								projectConfig.compiler?.compilerPath ||
+								projectConfig.compiler?.tmakePath
+							);
+
+						panel.webview.postMessage({
+							command: 'configStatus',
+							payload: {
+								isConfigured,
+								config: projectConfig
+							}
+						});
+					} catch (error) {
+						const errorMsg = error instanceof Error ? error.message : '加载配置失败';
+						panel.webview.postMessage({
+							command: 'configStatus',
+							payload: {
+								isConfigured: false,
+								config: null,
+								error: errorMsg
+							}
+						});
+					}
+				}
 				break;
 
 
@@ -454,10 +460,12 @@ export class TiecodeWebviewProvider {
 					}
 					try {
 						const projectConfig = message.payload;
-						await ProjectCreator.createProject(context, projectConfig);
+						const createdProjectPath = await ProjectCreator.createProject(context, projectConfig);
+						// 缓存刚创建的项目目录，用于后续配置写入正确位置
+						TiecodeWebviewProvider.currentProjectDir = createdProjectPath;
 						panel.webview.postMessage({
 							command: 'projectCreated',
-							payload: projectConfig
+							payload: { ...projectConfig, projectPath: createdProjectPath }
 						});
 					} catch (error) {
 						const errorMsg = error instanceof Error ? error.message : '创建项目失败';
@@ -483,8 +491,7 @@ export class TiecodeWebviewProvider {
 				// 加载项目配置
 				{
 					try {
-						const { ProjectConfigManager } = await import('../utils/ProjectConfigManager');
-						const config = await ProjectConfigManager.readConfig();
+						const config = await ProjectConfigManager.readConfig(TiecodeWebviewProvider.currentProjectDir || undefined);
 						panel.webview.postMessage({
 							command: 'projectConfigLoaded',
 							payload: config
@@ -504,9 +511,8 @@ export class TiecodeWebviewProvider {
 				// 保存项目配置
 				{
 					try {
-						const { ProjectConfigManager } = await import('../utils/ProjectConfigManager');
 						const config = message.payload;
-						await ProjectConfigManager.saveConfig(config);
+						await ProjectConfigManager.saveConfig(config, TiecodeWebviewProvider.currentProjectDir || undefined);
 						panel.webview.postMessage({
 							command: 'projectConfigSaved',
 							payload: config

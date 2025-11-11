@@ -407,4 +407,65 @@ export class ProjectConfigManager {
 		}
 		return null;
 	}
+
+	/**
+	 * 验证 tiecc 目录路径
+	 */
+	public static async validateCompilerPath(dirPath: string): Promise<{ valid: boolean; error?: string }> {
+		if (!dirPath) {
+			return { valid: false, error: '路径不能为空' };
+		}
+		try {
+			const stats = await fs.promises.stat(dirPath);
+			if (!stats.isDirectory()) {
+				return { valid: false, error: '编译器路径必须是目录' };
+			}
+			return { valid: true };
+		} catch {
+			return { valid: false, error: '路径不存在或无法访问' };
+		}
+	}
+
+	/**
+	 * 验证 TMake 可执行文件路径
+	 */
+	public static async validateTmakePath(filePath: string): Promise<{ valid: boolean; error?: string }> {
+		if (!filePath) {
+			return { valid: false, error: '路径不能为空' };
+		}
+		try {
+			const stats = await fs.promises.stat(filePath);
+			if (!stats.isFile()) {
+				return { valid: false, error: 'TMake 路径必须是文件' };
+			}
+			const ext = path.extname(filePath).toLowerCase();
+			if (ext !== '.exe') {
+				return { valid: false, error: 'TMake 必须是 .exe 文件' };
+			}
+			return { valid: true };
+		} catch {
+			return { valid: false, error: '文件不存在或无法访问' };
+		}
+	}
+
+	/**
+	 * 验证任意路径
+	 */
+	public static async validatePath(targetPath: string, isDirectory: boolean): Promise<{ valid: boolean; error?: string }> {
+		if (!targetPath) {
+			return { valid: false, error: '路径不能为空' };
+		}
+		try {
+			const stats = await fs.promises.stat(targetPath);
+			if (isDirectory && !stats.isDirectory()) {
+				return { valid: false, error: '路径必须是目录' };
+			}
+			if (!isDirectory && !stats.isFile()) {
+				return { valid: false, error: '路径必须是文件' };
+			}
+			return { valid: true };
+		} catch {
+			return { valid: false, error: '路径不存在或无法访问' };
+		}
+	}
 }
